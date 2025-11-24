@@ -2,9 +2,11 @@ import SimpleGoogleSignIn
 import Tauri
 import UIKit
 import WebKit
+import Foundation
 
 class SignInArgs: Decodable {
     let clientId: String
+    let serverClientId: String?
     let scopes: [String]?
     let hostedDomain: String?
     let loginHint: String?
@@ -33,24 +35,46 @@ class GoogleSignInPlugin: Plugin {
                 return
             }
 
-            let configuration = GoogleSignInConfiguration(
-                clientID: args.clientId
-            )
+            // 生成 nonce (UUID 格式)
+            let nonce = UUID().uuidString
+
+            let configuration: GoogleSignInConfiguration
+            if let serverClientId = args.serverClientId {
+                configuration = GoogleSignInConfiguration(
+                    clientID: args.clientId,
+                    serverClientID: serverClientId
+                )
+            } else {
+                configuration = GoogleSignInConfiguration(
+                    clientID: args.clientId
+                )
+            }
 
             SimpleGoogleSignIn.shared.configure(configuration: configuration)
 
             SimpleGoogleSignIn.shared.signIn(
-                presentingViewController: rootViewController, scopes: scopes
+                presentingViewController: rootViewController,
+                nonce: nonce,  // 传递我们生成的 nonce
+                scopes: scopes
             ) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let signInResult):
                         var tokenDict: [String: Any] = [
-                            "idToken": signInResult.openIdToken,
                             "accessToken": signInResult.accessToken.tokenString,
                             "refreshToken": signInResult.refreshToken ?? "",
                             "scopes": signInResult.grantedScopes ?? []
                         ]
+
+                        // Add ID token if available
+                        if let idToken = signInResult.openIdToken {
+                            tokenDict["idToken"] = idToken
+                        }
+
+                        // Add nonce returned from SimpleGoogleSignIn
+                        if let returnedNonce = signInResult.nonce {
+                            tokenDict["nonce"] = returnedNonce
+                        }
 
                          if let expirationDate = signInResult.accessToken.expirationDate {
                              tokenDict["expiresAt"] = Int64(expirationDate.timeIntervalSince1970 * 1000)

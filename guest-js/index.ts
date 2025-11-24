@@ -12,8 +12,10 @@ export interface TokenResponse {
   scopes: string[];
   /** Refresh token for obtaining new access tokens (optional) */
   refreshToken?: string;
-  /** Unix timestamp (seconds) when the access token expires */
+  /** Unix timestamp (milliseconds) when the access token expires */
   expiresAt?: number;
+  /** Nonce used for ID token verification */
+  nonce?: string;
 }
 
 /**
