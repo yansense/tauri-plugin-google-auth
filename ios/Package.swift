@@ -18,7 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Tauri", path: "../.tauri/tauri-api"),
-        .package(url: "https://github.com/yansense/SimpleGoogleSignIn.git", branch: "main"),
+        .package(url: "https://github.com/yansense/SimpleGoogleSignIn.git", from: "1.0.3"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
