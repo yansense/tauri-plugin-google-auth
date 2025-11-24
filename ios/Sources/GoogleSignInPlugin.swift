@@ -60,25 +60,34 @@ class GoogleSignInPlugin: Plugin {
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let signInResult):
-                        var tokenDict: [String: Any] = [
-                            "accessToken": signInResult.accessToken.tokenString,
-                            "refreshToken": signInResult.refreshToken ?? "",
-                            "scopes": signInResult.grantedScopes ?? []
-                        ]
+                        // 使用明确的类型构建字典
+                        var tokenDict = [String: Any]()
+                        
+                        // 必填字段
+                        tokenDict["accessToken"] = signInResult.accessToken.tokenString as String
+                        tokenDict["scopes"] = signInResult.grantedScopes ?? [] as [String]
+                        
+                        // 可选字段 - refreshToken
+                        if let refreshToken = signInResult.refreshToken {
+                            tokenDict["refreshToken"] = refreshToken as String
+                        } else {
+                            tokenDict["refreshToken"] = "" as String
+                        }
 
-                        // Add ID token if available
+                        // 可选字段 - idToken
                         if let idToken = signInResult.openIdToken {
-                            tokenDict["idToken"] = idToken
+                            tokenDict["idToken"] = idToken as String
                         }
 
-                        // Add nonce returned from SimpleGoogleSignIn
+                        // 可选字段 - nonce (关键!)
                         if let returnedNonce = signInResult.nonce {
-                            tokenDict["nonce"] = returnedNonce
+                            tokenDict["nonce"] = returnedNonce as String
                         }
 
-                         if let expirationDate = signInResult.accessToken.expirationDate {
-                             tokenDict["expiresAt"] = Int64(expirationDate.timeIntervalSince1970 * 1000)
-                         }
+                        // 可选字段 - expiresAt
+                        if let expirationDate = signInResult.accessToken.expirationDate {
+                            tokenDict["expiresAt"] = Int64(expirationDate.timeIntervalSince1970 * 1000) as Int64
+                        }
 
                         invoke.resolve(tokenDict)
 
