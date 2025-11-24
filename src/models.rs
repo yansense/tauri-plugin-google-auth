@@ -26,6 +26,7 @@ pub struct TokenResponse {
     pub scopes: Vec<String>,
     pub refresh_token: Option<String>,
     pub expires_at: Option<i64>,
+    pub nonce: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
